@@ -1,0 +1,19 @@
+version: '3.0'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:15.3-alpine
+    env_file:
+      - .development.env
+    environment:
+      PG_DATA: /var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: on-failure
+
+
+volumes:
+  pgdata:
