@@ -33,6 +33,8 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { ChangeStatusDto } from './dto/status-task.dto';
 import { DeleteTaskDto } from './dto/delete-task.dto';
 import { TaskDeletedResponse } from './responses/deleted.response';
+import { RangeTaskDto } from './dto/range-task.dto';
+import { DateTaskDto } from './dto/date-task.dto';
 
 @Controller('task')
 @ApiTags('Задачи')
@@ -64,6 +66,31 @@ export class TaskController {
   @Get('/get/single/:id')
   async taskById(@Param('id') taskId: number, @RequestUser() user: AccessPayloadInterface): Promise<BaseTaskResponse> {
     return this.taskService.getByIdRequest(taskId, user);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ description: 'Success', type: [BaseTaskResponse] })
+  @ApiUnauthorizedResponse({ description: 'Error: Unauthorized', type: UnauthorizedResponse })
+  @ApiNotFoundResponse({ description: 'Error: Not Found', type: NotFoundResponse })
+  @ApiUnprocessableEntityResponse({ description: 'Error: Unprocessable Entity', type: UnprocessableEntityResponse })
+  @Post('/get/range')
+  async getByDateRange(
+    @Body() dto: RangeTaskDto,
+    @RequestUser() user: AccessPayloadInterface,
+  ): Promise<BaseTaskResponse[]> {
+    return this.taskService.getByDateRange(dto, user);
+  }
+
+  @UsePipes(new ValidationPipe())
+  @UseGuards(JwtAuthGuard)
+  @ApiOkResponse({ description: 'Success', type: [BaseTaskResponse] })
+  @ApiUnauthorizedResponse({ description: 'Error: Unauthorized', type: UnauthorizedResponse })
+  @ApiNotFoundResponse({ description: 'Error: Not Found', type: NotFoundResponse })
+  @ApiUnprocessableEntityResponse({ description: 'Error: Unprocessable Entity', type: UnprocessableEntityResponse })
+  @Post('/get/range')
+  async getByDate(@Body() dto: DateTaskDto, @RequestUser() user: AccessPayloadInterface): Promise<BaseTaskResponse[]> {
+    return this.taskService.getByDate(dto, user);
   }
 
   @UsePipes(new ValidationPipe())

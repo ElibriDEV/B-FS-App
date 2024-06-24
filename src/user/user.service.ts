@@ -79,7 +79,7 @@ export class UserService {
 
   async deleteSelf(tokenPayload: AccessPayloadInterface): Promise<UserDeletedResponse> {
     const userExists: UserModel = await this.getByIdFull(tokenPayload.id, true);
-    await this.userModel.destroy({ where: { if: userExists.id } });
+    await this.userModel.destroy({ where: { id: userExists.id } });
     return new UserDeletedResponse(userExists.id);
   }
 

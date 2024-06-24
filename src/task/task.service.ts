@@ -15,6 +15,9 @@ import { ChangeStatusDto } from './dto/status-task.dto';
 import { DeleteTaskDto } from './dto/delete-task.dto';
 import { TaskDeletedResponse } from './responses/deleted.response';
 import { UserBaseResponse } from '../user/responses/base.response';
+import { RangeTaskDto } from './dto/range-task.dto';
+import { Op } from 'sequelize';
+import { DateTaskDto } from './dto/date-task.dto';
 
 @Injectable()
 export class TaskService {
@@ -39,6 +42,20 @@ export class TaskService {
       perPage: perPage,
       ascKeys: dto.ascFields,
       descKeys: dto.descFields,
+    });
+  }
+
+  async getByDateRange(dto: RangeTaskDto, tokenPayload: AccessPayloadInterface): Promise<BaseTaskResponse[]> {
+    return this.taskModel.findAll({
+      where: { userId: tokenPayload.id, deadline: { [Op.between]: [dto.startDate, dto.endDate] } },
+      attributes: ['id', 'title', 'description', 'deadline', 'completed', 'userId', 'createdAt', 'updatedAt'],
+    });
+  }
+
+  async getByDate(dto: DateTaskDto, tokenPayload: AccessPayloadInterface): Promise<BaseTaskResponse[]> {
+    return this.taskModel.findAll({
+      where: { userId: tokenPayload.id, deadline: dto.date },
+      attributes: ['id', 'title', 'description', 'deadline', 'completed', 'userId', 'createdAt', 'updatedAt'],
     });
   }
 

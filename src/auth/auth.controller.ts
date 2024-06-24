@@ -18,9 +18,9 @@ import { Request, Response } from 'express';
 import { FullLogoutOkResponse, LoginOkResponse, LogoutOkResponse, RefreshOkResponse } from './responses/ok.responses';
 import { UnauthorizedResponse } from '../../common/responses/unauthorized.response';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
-import { JwtAuthGuard } from './guards/jwt.guard';
 import { AccessPayloadInterface } from './interfaces/access.payload.interface';
 import { UserBaseResponse } from '../user/responses/base.response';
+import { JwtAuthExpIgnoreGuard } from './guards/jwt-ext-ignore.guard';
 
 @Controller('auth')
 @ApiTags('Авторизация')
@@ -46,7 +46,7 @@ export class AuthController {
   @ApiBadRequestResponse({ description: 'Error: Validation', type: BadRequestResponse })
   @ApiUnauthorizedResponse({ description: 'Error: Unauthorized', type: UnauthorizedResponse })
   @Post('/login')
-  async login(@Body() dto: LoginDto, @Res() res: Response) {
+  async login(@Body() dto: LoginDto, @Res() res: Response): Promise<Response> {
     return await this.authService.login(dto, res);
   }
 
@@ -55,7 +55,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Выход' })
   @ApiOkResponse({ type: LogoutOkResponse })
   @Get('/logout')
-  async logout(@Res() res: Response) {
+  async logout(@Res() res: Response): Promise<Response> {
     return this.authService.logout(res);
   }
 
@@ -64,11 +64,11 @@ export class AuthController {
   @ApiOperation({ summary: 'Выход со всех устройств' })
   @ApiOkResponse({ type: FullLogoutOkResponse })
   @Get('/full-logout')
-  async fullLogout(@RequestUser() user: AccessPayloadInterface, @Res() res: Response) {
+  async fullLogout(@RequestUser() user: AccessPayloadInterface, @Res() res: Response): Promise<Response> {
     return await this.authService.fullLogout(user.id, res);
   }
 
-  @UseGuards(JwtRefreshGuard, JwtAuthGuard)
+  @UseGuards(JwtRefreshGuard, JwtAuthExpIgnoreGuard)
   @UsePipes(new ValidationPipe())
   @ApiOperation({ summary: 'Обновление пары токенов' })
   @ApiOkResponse({ type: RefreshOkResponse })
@@ -77,7 +77,11 @@ export class AuthController {
     type: UnauthorizedResponse,
   })
   @Get('/refresh')
-  async refresh(@RequestUser() user: AccessPayloadInterface, @Req() req: Request, @Res() res: Response) {
+  async refresh(
+    @RequestUser() user: AccessPayloadInterface,
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<Response> {
     return await this.authService.refresh(user.id, req, res);
   }
 }

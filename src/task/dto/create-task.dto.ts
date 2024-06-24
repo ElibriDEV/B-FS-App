@@ -12,12 +12,12 @@ export class CreateTaskDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ example: false, description: 'Статус выполнения задачи' })
+  @ApiPropertyOptional({ example: false, description: 'Статус выполнения задачи' })
   @IsOptional()
   @IsBoolean()
   completed?: boolean;
 
-  @ApiProperty({ example: new Date(), description: 'Дата дедлайна задачи' })
+  @ApiPropertyOptional({ example: new Date(), description: 'Дата дедлайна задачи' })
   @IsOptional()
   @Transform(({ value }) => value && new Date(value))
   @IsDate()

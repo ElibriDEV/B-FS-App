@@ -23,41 +23,41 @@ export class AuthService {
   ) {}
 
   private _setCookiesToken(res: Response, accessToken?: string, refreshToken?: string): void {
-    const currentDate: Date = new Date();
+    const expires: Date = new Date(new Date().getTime() + 180 * 24 * 60 * 60 * 1000);
     if (accessToken) {
       res.cookie('access_token', accessToken, {
         sameSite: 'lax',
-        expires: new Date(currentDate.getTime() + 30 * 60 * 1000),
+        expires: expires,
       });
     }
     if (refreshToken) {
       res.cookie('refresh_token', refreshToken, {
         sameSite: 'lax',
-        expires: new Date(currentDate.getTime() + 180 * 24 * 60 * 60 * 1000),
+        expires: expires,
       });
     }
   }
 
-  private async _generateRefreshToken(id: number, date: number): Promise<string> {
+  private async _generateRefreshToken(id: number, date: Date): Promise<string> {
     return this.jwtService.signAsync(
       {
         id: id,
-        iat: date,
+        iat: Math.round(date.getTime() / 1000),
       },
-      { secret: this.configService.get('JWT_REFRESH_KEY'), expiresIn: '180d' },
+      { secret: this.configService.get('JWT_KEY'), expiresIn: '180d' },
     );
   }
 
-  private async _generateAccessToken(user: UserModel, date: number): Promise<string> {
+  private async _generateAccessToken(user: UserModel, date: Date): Promise<string> {
     return this.jwtService.signAsync(
       {
         id: user.id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        iat: date,
+        iat: Math.round(date.getTime() / 1000),
       },
-      { secret: this.configService.get('JWT_ACCESS_KEY'), expiresIn: '30m' },
+      { secret: this.configService.get('JWT_KEY'), expiresIn: '30m' },
     );
   }
 
@@ -72,7 +72,7 @@ export class AuthService {
     if (!userExists) throw new UnauthorizedResponse();
     const passwordEquals: boolean = await compare(dto.password, userExists.password);
     if (!passwordEquals) throw new UnauthorizedResponse();
-    const date: number = Date.now();
+    const date: Date = new Date();
     const refreshToken: string = await this._generateRefreshToken(userExists.id, date);
     const accessToken: string = await this._generateAccessToken(userExists, date);
     await this.userService.upsertRefresh(userExists.id, refreshToken);
@@ -93,6 +93,7 @@ export class AuthService {
   }
 
   async refresh(id: number, req: Request, res: Response): Promise<Response> {
+    console.log(123);
     const accessToken = req.cookies['access_token'];
     const refreshToken = req.cookies['refresh_token'];
     if (!accessToken || !refreshToken) throw new UnauthorizedResponse();
@@ -103,12 +104,10 @@ export class AuthService {
     const accessTokenPayload: AccessPayloadInterface = await this.jwtService.verifyAsync(accessToken, {
       ignoreExpiration: true,
     });
-    const refreshTokenPayload: RefreshPayloadInterface = await this.jwtService.verifyAsync(accessToken, {
-      ignoreExpiration: true,
-    });
+    const refreshTokenPayload: RefreshPayloadInterface = await this.jwtService.verifyAsync(refreshToken);
     if (accessTokenPayload.id != refreshTokenPayload.id || accessTokenPayload.iat != refreshTokenPayload.iat)
       throw new UnauthorizedResponse();
-    const date: number = Date.now();
+    const date: Date = new Date();
     const newRefreshToken: string = await this._generateRefreshToken(user.id, date);
     const newAccessToken: string = await this._generateAccessToken(user, date);
     await this.userService.upsertRefresh(user.id, newRefreshToken);

@@ -1,4 +1,4 @@
-import { IsBoolean, IsDate, IsInt, IsOptional, MaxLength, Min, MinDate, MinLength } from 'class-validator';
+import { IsBoolean, IsDate, IsInt, IsOptional, MaxLength, Min, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -8,7 +8,7 @@ export class UpdateTaskDto {
   @Min(1)
   id: number;
 
-  @ApiProperty({ example: 'Новая задача', description: 'Заголовок задачи' })
+  @ApiPropertyOptional({ example: 'Новая задача', description: 'Заголовок задачи' })
   @MaxLength(255)
   @MinLength(1)
   title?: string;
@@ -17,11 +17,11 @@ export class UpdateTaskDto {
   @IsOptional()
   description?: string;
 
-  @ApiProperty({ example: false, description: 'Статус выполнения задачи' })
+  @ApiPropertyOptional({ example: false, description: 'Статус выполнения задачи' })
   @IsBoolean()
   completed?: boolean;
 
-  @ApiProperty({ example: new Date(), description: 'Дата дедлайна задачи' })
+  @ApiPropertyOptional({ example: new Date(), description: 'Дата дедлайна задачи' })
   @IsOptional()
   @Transform(({ value }) => value && new Date(value))
   @IsDate()

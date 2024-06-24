@@ -7,11 +7,12 @@ import { UnauthorizedResponse } from '../../../common/responses/unauthorized.res
 import { AccessPayloadInterface } from '../interfaces/access.payload.interface';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt-exp-ignore') {
   constructor(private readonly configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([JwtStrategy.extractJWT]),
       secretOrKey: configService.get('JWT_KEY'),
+      ignoreExpiration: true,
     });
   }
 
